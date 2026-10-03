@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:latest
+    image: postgres:17
     environment:
       POSTGRES_DB: mvcagrocaretech
       POSTGRES_USER: mvcagrocaretech
