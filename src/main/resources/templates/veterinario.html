@@ -2,71 +2,242 @@
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Agrocare Tech</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1c3d27">
+    <title>Especialistas | Agrocare Tech</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
           integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
           crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* Personalizando a barra de rolagem */
-        ::-webkit-scrollbar {
-            width: 8px;
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(180deg, #1f4a2c 0%, #14301d 45%, #0e2215 100%) fixed;
+            min-height: 100vh;
+            min-height: 100dvh;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background-color: #4B5563;
-            border-radius: 10px;
+        .card {
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background-color: #6B7280;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1F2937;
-        }
+
+
+        .chip[aria-pressed="true"] { background: #34d399; color: #0e2215; font-weight: 600; }
+
+        /* Esconde a barra de rolagem dos filtros no celular */
+        .no-scrollbar { scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        /* Margem superior no celular, somando a área do relógio/notch do iPhone */
+        .safe-top { padding-top: calc(env(safe-area-inset-top) + 2rem); }
+        @media (min-width: 1024px) { .safe-top { padding-top: 2.5rem; } }
     </style>
+    <script>
+        // Se uma foto não carregar (ex.: serviço de avatar fora do ar), mostra as iniciais do nome
+        window.addEventListener('error', function (e) {
+            var img = e.target;
+            if (!img || img.tagName !== 'IMG' || img.dataset.fallback) return;
+            img.dataset.fallback = '1';
+            var name = (img.alt || '').replace(/^(Foto de|Avatar do usuário|Você)\s*/i, '').replace(/^(Dra?|Sr|Sra)\.\s*/i, '');
+            var initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join('') || '?';
+            var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1f4a2c"/>'
+                + '<text x="50" y="50" dy=".35em" text-anchor="middle" font-family="Poppins, sans-serif" font-size="40" font-weight="600" fill="#6ee7b7">'
+                + initials + '</text></svg>';
+            img.src = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+        }, true);
+    </script>
 </head>
-<body class="bg-[#1A1A1A] text-white font-poppins">
-<nav class="bg-[#1A1A1A] p-4 shadow-lg">
-    <div class="flex flex-wrap items-center justify-between max-w-6xl mx-auto">
-        <a class="text-2xl font-bold text-white mb-2 sm:mb-0" href="/">Agrocare Tech</a>
-        <div class="flex flex-wrap items-center space-x-4">
-            <a href="/" class="flex items-center text-white hover:text-emerald-600 transition duration-300">
-                <i class="fas fa-home mr-1"></i> Home
+<body class="text-white lg:min-h-screen lg:flex lg:flex-col">
+
+<!-- Navegação (desktop): header no topo -->
+<header class="hidden lg:block sticky top-0 z-50 bg-[#0e2215]/40 backdrop-blur-md backdrop-saturate-150 border-b border-white/10">
+    <div class="max-w-6xl mx-auto h-16 flex items-center justify-between px-10">
+        <a href="/" class="leading-none">
+            <img src="/images/agrocaretech-logo-branca.png" alt="Agrocare Tech" class="h-9 w-auto" />
+        </a>
+        <nav class="flex items-center">
+            <a href="/" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="fas fa-house"></i> Início</a>
+            <a href="/servico" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="fas fa-clipboard-list"></i> Atividades</a>
+            <a href="/chat" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="far fa-comment-dots"></i> Conversas</a>
+            <a href="/veterinario" class="flex items-center gap-2 px-4 py-2 text-sm text-emerald-400 font-medium" aria-current="page"><i class="fa-solid fa-user-doctor"></i> Especialistas</a>
+            <a href="/preferencias.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="far fa-user"></i> Preferências</a>
+        </nav>
+        <a href="/logout" class="flex items-center gap-2 pl-4 py-2 text-sm text-gray-300 hover:text-red-300 transition">
+            <i class="fas fa-arrow-right-from-bracket"></i> Sair
+        </a>
+    </div>
+</header>
+
+<div class="lg:flex-1">
+    <div class="max-w-md sm:max-w-2xl lg:max-w-6xl mx-auto px-4 lg:px-10 safe-top pb-28 lg:pb-10">
+
+        <!-- Topo -->
+        <header class="relative flex items-center justify-center h-12 mb-6 lg:justify-start lg:flex-col lg:items-start lg:h-auto lg:mb-8">
+            <a href="/" class="absolute left-0 p-2 text-gray-200 hover:text-white lg:hidden" aria-label="Voltar">
+                <i class="fas fa-chevron-left text-xl"></i>
             </a>
-            <a href="/chat" class="flex items-center text-white hover:text-emerald-600 transition duration-300">
-                <i class="fas fa-comments mr-1"></i> Chat
-            </a>
-            <a href="/servico" class="flex items-center text-white hover:text-emerald-600 transition duration-300">
-                <i class="fas fa-history mr-1"></i> Histórico
-            </a>
-            <div class="navbar-end">
-                <div class="flex items-center">
-                    <a href="/logout" class="text-white hover:text-emerald-600 transition duration-300">
-                        <i class="fas fa-sign-out-alt text-xl"></i>
+            <p class="hidden lg:block text-sm text-gray-300">Rede de atendimento</p>
+            <h1 class="text-xl font-medium lg:text-3xl lg:font-semibold lg:mt-1">Especialistas</h1>
+        </header>
+
+        <!-- Busca e filtros -->
+        <section class="mb-6 space-y-4">
+            <label class="flex items-center gap-3 bg-white/10 rounded-full px-5 py-3 focus-within:ring-2 focus-within:ring-emerald-400/60 transition">
+                <i class="fas fa-magnifying-glass text-gray-300"></i>
+                <input id="search" type="search" placeholder="Buscar por nome ou especialidade"
+                       class="flex-1 bg-transparent text-sm placeholder-gray-400 focus:outline-none" />
+            </label>
+            <div id="chips" class="no-scrollbar flex gap-2 overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
+                <button type="button" class="chip shrink-0 px-4 py-2 rounded-full bg-white/10 hover:bg-white/15 text-sm transition" data-filter="" aria-pressed="true">Todos</button>
+            </div>
+        </section>
+
+        <!-- Lista -->
+        <section id="list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+            <article th:each="veterinario : ${veterinarios}"
+                     class="vet card rounded-3xl p-6 text-center flex flex-col"
+                     th:attr="data-name=${veterinario.name},data-specialty=${veterinario.especializacaoVeterinario}">
+                <img class="w-24 h-24 mx-auto rounded-full object-cover border-4 border-emerald-400/80 bg-white/10 shadow-[0_0_25px_rgba(52,211,153,0.25)]"
+                     th:src="${veterinario.avatar != null ? veterinario.avatar : 'https://avatar.iran.liara.run/public/job/doctor/male'}"
+                     th:alt="${'Foto de ' + veterinario.name}" alt="Foto do veterinário" />
+                <h2 class="text-lg font-semibold mt-4" th:text="${veterinario.name}">Nome</h2>
+                <span th:if="${veterinario.especializacaoVeterinario != null}"
+                      class="self-center mt-2 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-medium"
+                      th:text="${veterinario.especializacaoVeterinario}">Especialidade</span>
+
+                <dl class="mt-5 pt-5 border-t border-white/10 space-y-2 text-sm text-left">
+                    <div class="flex items-center gap-3" th:if="${veterinario.cmrv != null}">
+                        <dt class="w-5 text-center text-gray-400"><i class="fas fa-id-card"></i><span class="sr-only">CRMV</span></dt>
+                        <dd class="text-gray-200" th:text="${veterinario.cmrv}">CRMV</dd>
+                    </div>
+                    <div class="flex items-center gap-3" th:if="${veterinario.phoneNumber != null}">
+                        <dt class="w-5 text-center text-gray-400"><i class="fas fa-phone"></i><span class="sr-only">Telefone</span></dt>
+                        <dd class="phone text-gray-200" th:text="${veterinario.phoneNumber}">Telefone</dd>
+                    </div>
+                    <div class="flex items-center gap-3 min-w-0" th:if="${veterinario.email != null}">
+                        <dt class="w-5 text-center text-gray-400"><i class="fas fa-envelope"></i><span class="sr-only">E-mail</span></dt>
+                        <dd class="text-gray-200 truncate" th:text="${veterinario.email}">E-mail</dd>
+                    </div>
+                </dl>
+
+                <div class="grid grid-cols-3 gap-2 mt-auto pt-6">
+                    <a th:href="${'https://wa.me/55' + veterinario.phoneNumber}" target="_blank" rel="noopener"
+                       th:classappend="${veterinario.phoneNumber == null} ? 'pointer-events-none opacity-40'"
+                       class="flex flex-col items-center gap-1 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-[#0e2215] text-xs font-semibold transition">
+                        <i class="fab fa-whatsapp text-lg"></i> WhatsApp
+                    </a>
+                    <a th:href="${'tel:+55' + veterinario.phoneNumber}"
+                       th:classappend="${veterinario.phoneNumber == null} ? 'pointer-events-none opacity-40'"
+                       class="flex flex-col items-center gap-1 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-xs font-medium transition">
+                        <i class="fas fa-phone text-lg"></i> Ligar
+                    </a>
+                    <a th:href="${'mailto:' + veterinario.email}"
+                       th:classappend="${veterinario.email == null} ? 'pointer-events-none opacity-40'"
+                       class="flex flex-col items-center gap-1 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-xs font-medium transition">
+                        <i class="fas fa-envelope text-lg"></i> E-mail
                     </a>
                 </div>
-            </div>
-        </div>
-    </div>
-</nav>
+            </article>
+        </section>
 
-<div class="p-6 max-w-6xl mx-auto">
-    <h3 class="text-lg font-bold mb-4">Veterinários Disponíveis</h3>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div th:each="veterinario : ${veterinarios}" class="bg-[#2E2E2E] rounded-lg p-6 text-center shadow-lg hover:shadow-2xl transition-shadow duration-300">
-            <img th:src="${veterinario.avatar != null ? veterinario.avatar : 'https://avatar.iran.liara.run/public/job/doctor/male'}"
-                 alt="Avatar do Veterinário ${veterinario.name != null ? veterinario.name : ''}" class="w-24 h-24 rounded-full mx-auto mb-4"/>
-            <h4 th:text="${veterinario.name}" class="font-bold text-xl mb-2"></h4>
-            <p class="text-sm mb-1">📞 <span th:text="${veterinario.phoneNumber}"></span></p>
-            <p class="text-sm mb-1">✉️ <span th:text="${veterinario.email}"></span></p>
-            <p class="text-sm mb-1">🧑‍⚕️ <span th:text="${veterinario.especializacaoVeterinario}"></span></p>
-            <p class="text-sm mb-1">🆔 <span th:text="${veterinario.cmrv}"></span></p>
-            <p class="text-xs text-gray-400">
-                Criado em: <span th:text="${veterinario.createdAt}"></span><br>
-                Atualizado em: <span th:text="${veterinario.updatedAt}"></span>
-            </p>
+        <!-- Sem resultados / lista vazia -->
+        <div id="empty" class="card rounded-3xl px-6 py-12 text-center text-gray-300"
+             th:classappend="${#lists.isEmpty(veterinarios)} ? '' : 'hidden'">
+            <i class="fa-solid fa-user-doctor text-3xl mb-3"></i>
+            <p id="emptyText">Nenhum especialista cadastrado ainda.</p>
         </div>
     </div>
 </div>
+
+<!-- Rodapé (desktop) -->
+<footer class="hidden lg:block border-t border-white/10 bg-[#0e2215]/85">
+    <div class="max-w-6xl mx-auto h-14 px-10 flex items-center justify-between text-xs text-gray-400">
+        <div class="flex items-center gap-4">
+            <img src="/images/agrocaretech-logo-branca.png" alt="Agrocare Tech" class="h-6 w-auto opacity-80" />
+            <span>Cuidado inteligente para o seu rebanho.</span>
+        </div>
+        <span>© 2026 Agrocare Tech. Todos os direitos reservados.</span>
+    </div>
+</footer>
+
+<!-- Navegação inferior (celular) -->
+<nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-[#0e2215]/95 backdrop-blur border-t border-white/10 safe-bottom">
+    <div class="max-w-md sm:max-w-2xl mx-auto grid grid-cols-4 text-xs">
+        <a href="/" class="flex flex-col items-center gap-1 py-3 text-gray-300 hover:text-white">
+            <i class="fas fa-house text-lg"></i> Início
+        </a>
+        <a href="/servico" class="flex flex-col items-center gap-1 py-3 text-gray-300 hover:text-white">
+            <i class="fas fa-clipboard-list text-lg"></i> Atividades
+        </a>
+        <a href="/chat" class="flex flex-col items-center gap-1 py-3 text-gray-300 hover:text-white">
+            <i class="far fa-comment-dots text-lg"></i> Conversas
+        </a>
+        <a href="/preferencias.html" class="flex flex-col items-center gap-1 py-3 text-gray-300 hover:text-white">
+            <i class="far fa-user text-lg"></i> Preferências
+        </a>
+    </div>
+</nav>
+
+<script>
+
+    const cards = Array.from(document.querySelectorAll('.vet'));
+    const search = document.getElementById('search');
+    const chips = document.getElementById('chips');
+    const empty = document.getElementById('empty');
+    let specialty = '';
+
+    // Telefone: 11999999999 -> (11) 99999-9999
+    document.querySelectorAll('.phone').forEach(function (el) {
+        const d = el.textContent.replace(/\D/g, '');
+        if (d.length === 11) el.textContent = '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+        else if (d.length === 10) el.textContent = '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+    });
+
+    // Um filtro para cada especialidade existente
+    [...new Set(cards.map(function (c) { return c.dataset.specialty; }).filter(Boolean))].sort().forEach(function (s) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip shrink-0 px-4 py-2 rounded-full bg-white/10 hover:bg-white/15 text-sm transition';
+        btn.dataset.filter = s;
+        btn.setAttribute('aria-pressed', 'false');
+        btn.textContent = s;
+        chips.appendChild(btn);
+    });
+
+    function normalize(s) {
+        return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    }
+
+    function applyFilters() {
+        const q = normalize(search.value);
+        let visible = 0;
+        cards.forEach(function (c) {
+            const matchText = !q || normalize(c.dataset.name).includes(q) || normalize(c.dataset.specialty).includes(q);
+            const matchChip = !specialty || c.dataset.specialty === specialty;
+            const show = matchText && matchChip;
+            c.classList.toggle('hidden', !show);
+            if (show) visible++;
+        });
+        if (cards.length) {
+            empty.classList.toggle('hidden', visible > 0);
+            document.getElementById('emptyText').textContent = 'Nenhum especialista encontrado.';
+        }
+    }
+
+    chips.addEventListener('click', function (e) {
+        const btn = e.target.closest('.chip');
+        if (!btn) return;
+        specialty = btn.dataset.filter;
+        chips.querySelectorAll('.chip').forEach(function (b) { b.setAttribute('aria-pressed', String(b === btn)); });
+        applyFilters();
+    });
+    search.addEventListener('input', applyFilters);
+</script>
 </body>
 </html>

@@ -2,97 +2,304 @@
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1c3d27">
     <title>Agrocare Tech</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
           integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        ::-webkit-scrollbar {
-            width: 8px;
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(180deg, #1f4a2c 0%, #14301d 45%, #0e2215 100%) fixed;
+            min-height: 100vh;
+            min-height: 100dvh;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background-color: #4B5563;
-            border-radius: 10px;
+        /* Cards com vidro verde-escuro, como no mockup */
+        .card {
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background-color: #6B7280;
-        }
 
-        ::-webkit-scrollbar-track {
-            background: #1F2937;
-        }
+        /* Respeita a área da barra de gestos do iPhone */
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        /* Margem superior no celular, somando a área do relógio/notch do iPhone */
+        .safe-top { padding-top: calc(env(safe-area-inset-top) + 2rem); }
+        @media (min-width: 1024px) { .safe-top { padding-top: 2.5rem; } }
     </style>
+    <script>
+        // Se uma foto não carregar (ex.: serviço de avatar fora do ar), mostra as iniciais do nome
+        window.addEventListener('error', function (e) {
+            var img = e.target;
+            if (!img || img.tagName !== 'IMG' || img.dataset.fallback) return;
+            img.dataset.fallback = '1';
+            var name = (img.alt || '').replace(/^(Foto de|Avatar do usuário|Você)\s*/i, '').replace(/^(Dra?|Sr|Sra)\.\s*/i, '');
+            var initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join('') || '?';
+            var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1f4a2c"/>'
+                + '<text x="50" y="50" dy=".35em" text-anchor="middle" font-family="Poppins, sans-serif" font-size="40" font-weight="600" fill="#6ee7b7">'
+                + initials + '</text></svg>';
+            img.src = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+        }, true);
+    </script>
 </head>
-<body class="bg-[#1A1A1A] text-white font-poppins">
-<nav class="bg-[#1A1A1A] p-4 shadow-lg">
-    <div class="flex flex-wrap items-center justify-between max-w-6xl mx-auto">
-        <a class="text-2xl font-bold text-white mb-2 sm:mb-0" href="/">Agrocare Tech</a>
-        <div class="flex flex-wrap items-center space-x-4">
-            <a href="/" class="flex items-center text-white hover:text-emerald-600">
-                <i class="fas fa-home mr-1"></i> Home
+<body class="text-white lg:min-h-screen lg:flex lg:flex-col" th:data-user-name="${user.name}" th:data-user-avatar="${user.avatar}">
+
+<!-- Navegação (desktop): header no topo -->
+<header class="hidden lg:block sticky top-0 z-50 bg-[#0e2215]/40 backdrop-blur-md backdrop-saturate-150 border-b border-white/10">
+    <div class="max-w-6xl mx-auto h-16 flex items-center justify-between px-10">
+        <a href="/" class="leading-none">
+            <img src="/images/agrocaretech-logo-branca.png" alt="Agrocare Tech" class="h-9 w-auto" />
+        </a>
+        <nav class="flex items-center">
+            <a href="/" class="flex items-center gap-2 px-4 py-2 text-sm text-emerald-400 font-medium" aria-current="page"><i class="fas fa-house"></i> Início</a>
+            <a href="/servico" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="fas fa-clipboard-list"></i> Atividades</a>
+            <a href="/chat" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="far fa-comment-dots"></i> Conversas</a>
+            <a href="/veterinario" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="fa-solid fa-user-doctor"></i> Especialistas</a>
+            <a href="/preferencias.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="far fa-user"></i> Preferências</a>
+        </nav>
+        <a href="/logout" class="flex items-center gap-2 pl-4 py-2 text-sm text-gray-300 hover:text-red-300 transition">
+            <i class="fas fa-arrow-right-from-bracket"></i> Sair
+        </a>
+    </div>
+</header>
+
+<div class="lg:flex-1">
+    <div class="max-w-md sm:max-w-2xl lg:max-w-6xl mx-auto px-4 lg:px-10 safe-top pb-28 lg:pb-10">
+
+        <!-- Topo (celular) -->
+        <header class="lg:hidden relative flex items-center justify-center h-12 mt-6 mb-8">
+            <a href="/" class="text-center leading-none">
+                <img src="/images/agrocaretech-logo-branca.png" alt="Agrocare Tech" class="h-11 w-auto mx-auto" />
             </a>
-            <a href="/chat" class="flex items-center text-white hover:text-emerald-600">
-                <i class="fas fa-comments mr-1"></i> Chat
+        </header>
+
+        <!-- Topo (desktop) -->
+        <header class="hidden lg:flex items-end justify-between mb-8">
+            <div>
+                <p class="text-sm text-gray-300">Visão geral</p>
+                <h1 class="text-3xl font-semibold mt-1">Início</h1>
+            </div>
+            <a href="/chat" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-[#0e2215] font-semibold transition">
+                <i class="far fa-comment-dots"></i> Falar com o assistente
             </a>
-            <a href="/servico" class="flex items-center text-white hover:text-emerald-600">
-                <i class="fas fa-history mr-1"></i> Histórico
-            </a>
-            <a href="/veterinario" class="flex items-center text-white hover:text-emerald-600">
-                <i class="fa-solid fa-suitcase-medical mr-1"></i> Veterinários
-            </a>
-            <div class="navbar-end">
-                <div class="flex items-center">
-                    <a href="/logout" class="text-white hover:text-emerald-600">
-                        <i class="fas fa-sign-out-alt text-xl"></i>
-                    </a>
+        </header>
+
+        <div class="lg:grid lg:grid-cols-[300px_1fr] lg:gap-6 lg:items-start">
+
+            <!-- Perfil (celular) -->
+            <section class="lg:hidden mb-6">
+                <div class="relative card rounded-3xl h-24 flex items-center justify-between px-6">
+                    <div class="text-center">
+                        <p class="font-bold text-lg">3.127</p>
+                        <p class="text-xs text-gray-300">Animais</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-bold text-lg">81</p>
+                        <p class="text-xs text-gray-300">Consultas</p>
+                    </div>
+                    <img referrerpolicy="no-referrer" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full object-cover border-4 border-emerald-400/80 shadow-[0_0_25px_rgba(52,211,153,0.35)]"
+                         th:src="${user.avatar}" alt="Avatar do usuário" />
                 </div>
+                <h1 class="text-center text-xl font-semibold mt-6">
+                    Olá, <span th:text="${user.name}">Produtor</span>
+                </h1>
+                <p class="text-center text-sm text-gray-300 mt-1">
+                    <button type="button" class="js-location hover:text-white transition" onclick="detectLocation()">
+                        <i class="fas fa-location-dot mr-1"></i> <span class="js-location-text">Usar minha localização</span>
+                    </button>
+                </p>
+            </section>
+
+            <!-- Perfil (desktop) -->
+            <section class="hidden lg:block card rounded-3xl p-8 text-center lg:sticky lg:top-10">
+                <img referrerpolicy="no-referrer" class="w-32 h-32 mx-auto rounded-full object-cover border-4 border-emerald-400/80 shadow-[0_0_25px_rgba(52,211,153,0.35)]"
+                     th:src="${user.avatar}" alt="Avatar do usuário" />
+                <h2 class="text-xl font-semibold mt-5">
+                    Olá, <span th:text="${user.name}">Produtor</span>
+                </h2>
+                <p class="text-sm text-gray-300 mt-1">
+                    <button type="button" class="js-location hover:text-white transition" onclick="detectLocation()">
+                        <i class="fas fa-location-dot mr-1"></i> <span class="js-location-text">Usar minha localização</span>
+                    </button>
+                </p>
+                <div class="grid grid-cols-2 mt-8 pt-6 border-t border-white/10">
+                    <div class="border-r border-white/10">
+                        <p class="font-bold text-2xl">3.127</p>
+                        <p class="text-xs text-gray-300">Animais</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-2xl">81</p>
+                        <p class="text-xs text-gray-300">Consultas</p>
+                    </div>
+                </div>
+            </section>
+
+            <div>
+                <!-- Painel -->
+                <section class="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6 mb-4 lg:mb-6">
+                    <div class="flex flex-col gap-3 lg:contents">
+                        <!-- Avisos -->
+                        <div class="card rounded-3xl p-4 lg:p-6 h-36 lg:h-auto flex flex-col">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-gray-300">Avisos</p>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    <span class="w-2 h-2 rounded-full bg-red-400"></span>
+                                </div>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center justify-center">
+                                <p class="text-4xl lg:text-5xl font-semibold text-emerald-400">21</p>
+                                <p class="text-sm text-gray-300">Saúde</p>
+                            </div>
+                        </div>
+                        <!-- Consultas -->
+                        <a href="/servico" class="card rounded-3xl p-4 lg:p-6 h-36 lg:h-auto flex flex-col hover:bg-white/5 transition">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-gray-300">Consultas</p>
+                                <i class="fas fa-circle-info text-emerald-400/70 text-sm"></i>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center justify-center">
+                                <p class="text-4xl lg:text-5xl font-semibold text-emerald-400">81</p>
+                                <p class="text-sm text-gray-300">Realizadas</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Inventário -->
+                    <div class="card rounded-3xl p-4 lg:p-6 flex flex-col overflow-hidden">
+                        <p class="text-sm text-gray-300">Inventário</p>
+                        <div class="flex-1 flex items-center justify-center">
+                            <svg viewBox="0 0 64 56" class="w-20 h-20" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M32 52 C14 40 4 30 4 18 A13 13 0 0 1 32 12 A13 13 0 0 1 60 18 C60 30 50 40 32 52 Z" stroke="#f08080" stroke-width="3"/>
+                                <path d="M10 28 H22 L26 20 L32 36 L37 24 L40 28 H54" stroke="#6ee7b7" stroke-width="3"/>
+                            </svg>
+                        </div>
+                        <svg viewBox="0 0 120 40" preserveAspectRatio="none" class="w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)] -mx-4 lg:-mx-6 h-12">
+                            <defs>
+                                <linearGradient id="spark" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="#34d399" stop-opacity="0.35"/>
+                                    <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M0 30 L12 26 L22 29 L32 18 L42 22 L52 12 L62 20 L72 10 L82 16 L92 8 L104 14 L120 6 V40 H0 Z" fill="url(#spark)"/>
+                            <path d="M0 30 L12 26 L22 29 L32 18 L42 22 L52 12 L62 20 L72 10 L82 16 L92 8 L104 14 L120 6" fill="none" stroke="#a7f3d0" stroke-width="1.5"/>
+                        </svg>
+                        <div class="mt-2">
+                            <p class="text-3xl font-semibold text-emerald-400">3.127</p>
+                            <p class="text-sm text-gray-300">Vidas</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Especialistas -->
+                <section class="card rounded-3xl p-4 lg:p-6">
+                    <div class="flex items-center justify-between mb-4 lg:mb-6">
+                        <p class="text-sm text-gray-300">Especialistas</p>
+                        <div class="flex items-center gap-1">
+                            <span class="w-5 h-1 rounded-full bg-emerald-400"></span>
+                            <span class="w-3 h-1 rounded-full bg-white/25"></span>
+                            <span class="w-3 h-1 rounded-full bg-white/25"></span>
+                        </div>
+                    </div>
+                    <a href="/veterinario" class="grid grid-cols-3 gap-3 text-center">
+                        <div>
+                            <img class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto rounded-full object-cover border-2 border-white/10 bg-white/5"
+                                 src="https://avatar.iran.liara.run/public/job/doctor/male" alt="Dr. João Silva" />
+                            <p class="text-xs lg:text-sm text-gray-300 mt-2 truncate">Dr. João Silva</p>
+                        </div>
+                        <div>
+                            <img class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto rounded-full object-cover border-2 border-white/10 bg-white/5"
+                                 src="https://avatar.iran.liara.run/public/job/doctor/female" alt="Dra. Ana Costa" />
+                            <p class="text-xs lg:text-sm text-gray-300 mt-2 truncate">Dra. Ana Costa</p>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center text-gray-300 hover:text-white hover:border-white/40 transition">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <p class="text-xs lg:text-sm text-gray-300 mt-2">Ver todos</p>
+                        </div>
+                    </a>
+                </section>
             </div>
         </div>
     </div>
-</nav>
-<div class="p-4 max-w-6xl mx-auto">
-    <h1 class="text-center text-3xl font-semibold mb-4">
-        Olá, <span th:text="${user.name}"></span>
-    </h1>
-    <div class="bg-[#2E2E2E] rounded-lg p-6 text-center mb-6 shadow-custom">
-        <figure class="image mb-4">
-            <img class="w-24 h-24 rounded-full border-4 border-emerald-400 mx-auto" th:src="${user.avatar}" alt="Avatar do usuário" />
-        </figure>
-        <p class="text-lg">📍 São Paulo, SP</p>
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div class="bg-[#2E2E2E] rounded-lg p-4 text-center shadow-custom">
-            <h3 class="text-4xl text-emerald-400">3.127</h3>
-            <p class="text-sm text-gray-400">Animais</p>
-        </div>
-        <div class="bg-[#2E2E2E] rounded-lg p-4 text-center shadow-custom">
-            <h3 class="text-4xl text-emerald-400">81</h3>
-            <p class="text-sm text-gray-400">Consultas</p>
-        </div>
-    </div>
-    <div class="mb-6">
-        <h3 class="text-lg font-bold mb-2">Alertas Recentes</h3>
-        <div class="flex flex-wrap items-center mt-2 bg-[#2E2E2E] rounded-lg p-2 shadow-custom">
-            <i class="fas fa-exclamation-triangle text-red-500"></i>
-            <span class="ml-2">2 animais com suspeita de febre aftosa.</span>
-        </div>
-        <div class="flex flex-wrap items-center mt-2 bg-[#2E2E2E] rounded-lg p-2 shadow-custom">
-            <i class="fas fa-exclamation-circle text-orange-500"></i>
-            <span class="ml-2">Estoque de vacinas abaixo do esperado.</span>
-        </div>
-    </div>
-    <div class="fixed bottom-4 right-4 flex flex-col items-center">
-        <a href="/chat" class="bg-emerald-500 text-white rounded-full p-4 shadow-custom hover:bg-emerald-600 transition duration-200">
-            <i class="fas fa-comments text-xl"></i>
-        </a>
-        <div class="bg-[#2E2E2E] text-center rounded-lg p-2 mt-2 shadow-custom">
-            <span class="text-sm">Está em dúvida?</span><br>
-            <span class="text-sm">Fale com o assistente virtual!</span>
-        </div>
-    </div>
 </div>
+
+<!-- Rodapé (desktop) -->
+<footer class="hidden lg:block border-t border-white/10 bg-[#0e2215]/85">
+    <div class="max-w-6xl mx-auto h-14 px-10 flex items-center justify-between text-xs text-gray-400">
+        <div class="flex items-center gap-4">
+            <img src="/images/agrocaretech-logo-branca.png" alt="Agrocare Tech" class="h-6 w-auto opacity-80" />
+            <span>Cuidado inteligente para o seu rebanho.</span>
+        </div>
+        <span>© 2026 Agrocare Tech. Todos os direitos reservados.</span>
+    </div>
+</footer>
+
+<!-- Navegação inferior (celular) -->
+<nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-[#0e2215]/95 backdrop-blur border-t border-white/10 safe-bottom">
+    <div class="max-w-md sm:max-w-2xl mx-auto grid grid-cols-4 text-xs">
+        <a href="/" class="flex flex-col items-center gap-1 py-3 text-emerald-400 font-medium">
+            <i class="fas fa-house text-lg"></i> Início
+        </a>
+        <a href="/servico" class="flex flex-col items-center gap-1 py-3 text-gray-300 hover:text-white">
+            <i class="fas fa-clipboard-list text-lg"></i> Atividades
+        </a>
+        <a href="/chat" class="flex flex-col items-center gap-1 py-3 text-gray-300 hover:text-white">
+            <i class="far fa-comment-dots text-lg"></i> Conversas
+        </a>
+        <a href="/preferencias.html" class="flex flex-col items-center gap-1 py-3 text-gray-300 hover:text-white">
+            <i class="far fa-user text-lg"></i> Preferências
+        </a>
+    </div>
+</nav>
+
+<script>
+    // Localização real: GPS do navegador -> cidade/estado (OpenStreetMap), guardada no navegador
+    const LOCATION_KEY = 'agrocare.location';
+
+    function showLocation(text) {
+        document.querySelectorAll('.js-location-text').forEach(function (el) { el.textContent = text; });
+    }
+
+    function detectLocation() {
+        if (!('geolocation' in navigator)) { showLocation('Localização indisponível'); return; }
+        showLocation('Localizando…');
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            const url = 'https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&accept-language=pt-BR'
+                + '&lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude;
+            fetch(url)
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    const a = data.address || {};
+                    const city = a.city || a.town || a.village || a.municipality || a.county;
+                    const text = [city, a.state].filter(Boolean).join(', ') || 'Localização desconhecida';
+                    showLocation(text);
+                    try { localStorage.setItem(LOCATION_KEY, text); } catch (e) {}
+                })
+                .catch(function () { showLocation('Não foi possível obter a cidade'); });
+        }, function () {
+            showLocation('Permissão de localização negada');
+        }, { timeout: 10000, maximumAge: 3600000 });
+    }
+
+    (function initLocation() {
+        let saved = null;
+        try { saved = localStorage.getItem(LOCATION_KEY); } catch (e) {}
+        if (saved) { showLocation(saved); return; }
+        // Se a permissão já foi dada antes, busca sozinho; senão espera o clique
+        if (navigator.permissions) {
+            navigator.permissions.query({ name: 'geolocation' })
+                .then(function (p) { if (p.state === 'granted') detectLocation(); })
+                .catch(function () {});
+        }
+    })();
+</script>
 </body>
 </html>

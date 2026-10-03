@@ -2,93 +2,243 @@
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Agrocare Tech</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1c3d27">
+    <title>Conversas | Agrocare Tech</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
           integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* Personalizando a barra de rolagem */
-        ::-webkit-scrollbar {
-            width: 8px;
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(180deg, #1f4a2c 0%, #14301d 45%, #0e2215 100%) fixed;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background-color: #4B5563; /* Cor do "polegar" da barra de rolagem */
-            border-radius: 10px; /* Bordas arredondadas do "polegar" */
+
+        .bubble-bot {
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.04));
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background-color: #6B7280; /* Cor do "polegar" ao passar o mouse */
-        }
+        /* Markdown das respostas da IA */
+        .md p + p, .md ul, .md ol { margin-top: 0.5rem; }
+        .md ul { list-style: disc; padding-left: 1.25rem; }
+        .md ol { list-style: decimal; padding-left: 1.25rem; }
+        .md strong { color: #a7f3d0; font-weight: 600; }
+        .md h1, .md h2, .md h3 { font-weight: 600; margin-top: 0.75rem; }
+        .md code { background: rgba(0, 0, 0, 0.3); padding: 0.1rem 0.35rem; border-radius: 0.35rem; font-size: 0.85em; }
 
-        ::-webkit-scrollbar-track {
-            background: #1F2937; /* Cor do fundo da barra de rolagem */
-        }
+        /* Indicador de "digitando…" */
+        .dot { animation: blink 1.2s infinite both; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+
+        #messageContainer::-webkit-scrollbar { width: 6px; }
+        #messageContainer::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+
+        .safe-bottom { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+        /* Margem superior no celular, somando a área do relógio/notch do iPhone */
+        .safe-top { padding-top: calc(env(safe-area-inset-top) + 2rem); }
+        @media (min-width: 1024px) { .safe-top { padding-top: 2.5rem; } }
     </style>
+    <script>
+        // Se uma foto não carregar (ex.: serviço de avatar fora do ar), mostra as iniciais do nome
+        window.addEventListener('error', function (e) {
+            var img = e.target;
+            if (!img || img.tagName !== 'IMG' || img.dataset.fallback) return;
+            img.dataset.fallback = '1';
+            var name = (img.alt || '').replace(/^(Foto de|Avatar do usuário|Você)\s*/i, '').replace(/^(Dra?|Sr|Sra)\.\s*/i, '');
+            var initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0].toUpperCase(); }).join('') || '?';
+            var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1f4a2c"/>'
+                + '<text x="50" y="50" dy=".35em" text-anchor="middle" font-family="Poppins, sans-serif" font-size="40" font-weight="600" fill="#6ee7b7">'
+                + initials + '</text></svg>';
+            img.src = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+        }, true);
+    </script>
 </head>
-<body class="bg-[#1A1A1A] text-white h-screen flex flex-col">
+<body class="text-white lg:min-h-screen lg:flex lg:flex-col">
 
-<nav class="bg-[#1A1A1A] p-4 shadow-lg">
-    <div class="flex justify-between items-center max-w-6xl mx-auto">
-        <a class="text-2xl font-bold text-white" href="/">Agrocare Tech</a>
-        <div class="flex items-center space-x-4">
-            <a href="/" class="flex items-center text-white hover:text-emerald-600">
-                <i class="fas fa-home mr-1"></i> Home
+<!-- Navegação (desktop): header no topo -->
+<header class="hidden lg:block sticky top-0 z-50 bg-[#0e2215]/40 backdrop-blur-md backdrop-saturate-150 border-b border-white/10">
+    <div class="max-w-6xl mx-auto h-16 flex items-center justify-between px-10">
+        <a href="/" class="leading-none">
+            <img src="/images/agrocaretech-logo-branca.png" alt="Agrocare Tech" class="h-9 w-auto" />
+        </a>
+        <nav class="flex items-center">
+            <a href="/" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="fas fa-house"></i> Início</a>
+            <a href="/servico" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="fas fa-clipboard-list"></i> Atividades</a>
+            <a href="/chat" class="flex items-center gap-2 px-4 py-2 text-sm text-emerald-400 font-medium" aria-current="page"><i class="far fa-comment-dots"></i> Conversas</a>
+            <a href="/veterinario" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="fa-solid fa-user-doctor"></i> Especialistas</a>
+            <a href="/preferencias.html" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white transition"><i class="far fa-user"></i> Preferências</a>
+        </nav>
+        <a href="/logout" class="flex items-center gap-2 pl-4 py-2 text-sm text-gray-300 hover:text-red-300 transition">
+            <i class="fas fa-arrow-right-from-bracket"></i> Sair
+        </a>
+    </div>
+</header>
+
+<div class="h-screen h-[100dvh] lg:h-[calc(100dvh-7.5rem)] flex flex-col">
+    <div class="w-full max-w-3xl lg:max-w-6xl lg:px-10 mx-auto flex-1 flex flex-col min-h-0">
+
+        <!-- Topo -->
+        <header class="flex items-center gap-3 px-4 lg:px-0 pb-4 safe-top lg:!pt-4 border-b border-white/10">
+            <a href="/" class="p-2 -ml-2 text-gray-200 hover:text-white lg:hidden" aria-label="Voltar">
+                <i class="fas fa-chevron-left text-xl"></i>
             </a>
-            <a href="/chat" class="flex items-center text-white hover:text-emerald-600">
-                <i class="fas fa-comments mr-1"></i> Chat
+            <div class="relative">
+                <img class="w-11 h-11 rounded-full border-2 border-emerald-400/80 bg-white/10" src="https://avatar.iran.liara.run/public/job/farmer/male" alt="Sr. Pigson" />
+                <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#1f4a2c]"></span>
+            </div>
+            <div class="flex-1">
+                <p class="font-semibold leading-tight">Sr. Pigson</p>
+                <p class="text-xs text-emerald-300">Assistente virtual · online</p>
+            </div>
+            <a href="/chat" class="p-2 text-gray-300 hover:text-white" title="Nova conversa" aria-label="Nova conversa">
+                <i class="fas fa-rotate-right"></i>
             </a>
-            <a href="/servico" class="flex items-center text-white hover:text-emerald-600">
-                <i class="fas fa-history mr-1"></i> Histórico
-            </a>
-            <div class="navbar-end">
-                <div class="flex items-center">
-                    <a href="/logout" class="text-white hover:text-emerald-600">
-                        <i class="fas fa-sign-out-alt text-xl"></i>
-                    </a>
+        </header>
+
+        <!-- Mensagens -->
+        <main id="messageContainer" class="flex-1 overflow-y-auto px-4 lg:px-0 py-6 space-y-5">
+
+            <!-- Boas-vindas -->
+            <section th:if="${#lists.isEmpty(messages)}" class="h-full flex flex-col items-center justify-center text-center">
+                <div class="w-24 h-24 rounded-full border-4 border-emerald-500/80 bg-[#14301d] flex items-center justify-center shadow-[0_0_25px_rgba(52,211,153,0.30)]">
+                    <img class="w-20 h-20 rounded-full" src="https://avatar.iran.liara.run/public/job/farmer/male" alt="Sr. Pigson" />
+                </div>
+                <h1 class="text-xl font-semibold mt-5">Como posso ajudar?</h1>
+                <p class="text-sm text-gray-300 mt-1 max-w-xs">Pergunte sobre saúde, manejo e nutrição do seu rebanho.</p>
+                <div class="flex flex-wrap justify-center gap-2 mt-6 max-w-md">
+                    <button type="button" class="suggestion px-4 py-2 rounded-full bg-white/10 hover:bg-white/15 text-sm transition">Sintomas de febre aftosa</button>
+                    <button type="button" class="suggestion px-4 py-2 rounded-full bg-white/10 hover:bg-white/15 text-sm transition">Calendário de vacinação bovina</button>
+                    <button type="button" class="suggestion px-4 py-2 rounded-full bg-white/10 hover:bg-white/15 text-sm transition">Como melhorar o ganho de peso?</button>
+                </div>
+            </section>
+
+            <div th:each="message : ${messages}" th:with="isBot=${message.user == 'Sr. Pigson'}">
+                <!-- Assistente -->
+                <div th:if="${isBot}" class="flex items-end gap-2 max-w-[85%] lg:max-w-[65%]">
+                    <img referrerpolicy="no-referrer" class="w-8 h-8 rounded-full bg-white/10 shrink-0" th:src="${message.avatar}" alt="Sr. Pigson" />
+                    <div>
+                        <div class="bubble-bot md rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed" th:text="${message.content}"></div>
+                        <p class="text-[11px] text-gray-400 mt-1 ml-1" th:text="${#temporals.format(message.timestamp, 'HH:mm')}"></p>
+                    </div>
+                </div>
+                <!-- Usuário -->
+                <div th:unless="${isBot}" class="flex items-end justify-end gap-2 ml-auto max-w-[85%] lg:max-w-[65%]">
+                    <div class="text-right">
+                        <div class="bg-emerald-500 text-[#0e2215] rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed text-left whitespace-pre-line" th:text="${message.content}"></div>
+                        <p class="text-[11px] text-gray-400 mt-1 mr-1" th:text="${#temporals.format(message.timestamp, 'HH:mm')}"></p>
+                    </div>
+                    <img referrerpolicy="no-referrer" class="w-8 h-8 rounded-full shrink-0" th:src="${message.avatar}" alt="Você" />
                 </div>
             </div>
-        </div>
-    </div>
-</nav>
 
-
-<div class="flex-grow container mx-auto my-4 flex flex-col">
-    <div class="bg-[#2E2E2E] rounded-lg flex-grow p-4 mb-4 shadow-lg mx-2">
-        <div class="flex flex-col h-full">
-            <div id="messageContainer" class="flex-grow mb-4 overflow-auto" style="max-height: calc(100vh - 200px);">
-                <div th:each="message : ${messages}" class="message mb-4 flex items-start">
-                    <img th:src="${message.avatar}" alt="User avatar" class="w-10 h-10 rounded-full mr-3">
-                    <div>
-                        <strong th:text="${message.user} + ':'" class="font-semibold text-emerald-300"></strong>
-                        <span class="text-gray-400 text-sm block" th:text="${#temporals.format(message.timestamp, 'HH:mm:ss')}"></span>
-                        <p th:text="${message.content}" class="bg-emerald-500 bg-opacity-50 p-2 rounded-lg inline-block mt-1"></p>
+            <!-- Mensagem pendente + "digitando…" (exibidos ao enviar) -->
+            <div id="pending" class="hidden space-y-5">
+                <div class="flex justify-end ml-auto max-w-[85%] lg:max-w-[65%]">
+                    <div id="pendingText" class="bg-emerald-500 text-[#0e2215] rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed whitespace-pre-line"></div>
+                </div>
+                <div class="flex items-end gap-2">
+                    <img class="w-8 h-8 rounded-full bg-white/10" src="https://avatar.iran.liara.run/public/job/farmer/male" alt="Sr. Pigson" />
+                    <div class="bubble-bot rounded-2xl rounded-bl-md px-4 py-3 flex gap-1">
+                        <span class="dot w-2 h-2 rounded-full bg-gray-200"></span>
+                        <span class="dot w-2 h-2 rounded-full bg-gray-200"></span>
+                        <span class="dot w-2 h-2 rounded-full bg-gray-200"></span>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </main>
 
-    <form action="/send" method="post" class="flex mb-4 mx-2">
-        <input type="text" name="message" placeholder="Digite uma mensagem" class="flex-grow p-3 rounded-l-lg bg-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
-        <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold p-3 rounded-r-lg transition duration-200">Enviar</button>
-    </form>
+        <!-- Campo de mensagem -->
+        <form id="chatForm" action="/send" method="post" class="px-4 lg:px-0 pt-3 lg:pb-4 safe-bottom border-t border-white/10">
+            <div class="flex items-end gap-2 bg-white/10 rounded-3xl pl-5 pr-2 py-2 focus-within:ring-2 focus-within:ring-emerald-400/60 transition">
+                <textarea id="messageInput" name="message" rows="1" required
+                          placeholder="Digite uma mensagem"
+                          class="flex-1 bg-transparent resize-none py-2 text-sm placeholder-gray-400 focus:outline-none max-h-32"></textarea>
+                <button id="sendButton" type="submit" aria-label="Enviar"
+                        class="w-10 h-10 shrink-0 rounded-full bg-emerald-500 hover:bg-emerald-400 text-[#0e2215] flex items-center justify-center transition disabled:opacity-50">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <p class="text-[11px] text-gray-400 text-center mt-2">As respostas são geradas por IA e podem conter erros. Consulte um veterinário.</p>
+        </form>
+    </div>
 </div>
 
+<!-- Rodapé (desktop) -->
+<footer class="hidden lg:block border-t border-white/10 bg-[#0e2215]/85">
+    <div class="max-w-6xl mx-auto h-14 px-10 flex items-center justify-between text-xs text-gray-400">
+        <div class="flex items-center gap-4">
+            <img src="/images/agrocaretech-logo-branca.png" alt="Agrocare Tech" class="h-6 w-auto opacity-80" />
+            <span>Cuidado inteligente para o seu rebanho.</span>
+        </div>
+        <span>© 2026 Agrocare Tech. Todos os direitos reservados.</span>
+    </div>
+</footer>
+
 <script>
+    const container = document.getElementById('messageContainer');
+    const form = document.getElementById('chatForm');
+    const input = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+
     function scrollToBottom() {
-        const messageContainer = document.getElementById("messageContainer");
-        messageContainer.scrollTop = messageContainer.scrollHeight; // Rola para o final
+        container.scrollTop = container.scrollHeight;
     }
 
-    window.onload = function() {
-        scrollToBottom(); // Rola para o final quando a página é carregada
-    };
+    // Renderiza o markdown das respostas da IA (sanitizado)
+    document.querySelectorAll('.md').forEach(function (el) {
+        if (window.marked && window.DOMPurify) {
+            el.innerHTML = DOMPurify.sanitize(marked.parse(el.textContent));
+        } else {
+            el.classList.add('whitespace-pre-line');
+        }
+    });
 
-    // Chama a rolagem também após o envio de uma nova mensagem
-    document.querySelector('form').addEventListener('submit', function() {
-        setTimeout(scrollToBottom, 1); // Aguarda um pouco antes de rolar após o envio
+    // Campo cresce com o texto; Enter envia, Shift+Enter quebra linha
+    function autoResize() {
+        input.style.height = 'auto';
+        input.style.height = input.scrollHeight + 'px';
+    }
+    input.addEventListener('input', autoResize);
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+            e.preventDefault();
+            form.requestSubmit();
+        }
+    });
+
+    // Sugestões preenchem e enviam a pergunta
+    document.querySelectorAll('.suggestion').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            input.value = btn.textContent.trim();
+            form.requestSubmit();
+        });
+    });
+
+    // Mostra a mensagem e o "digitando…" enquanto a IA responde
+    form.addEventListener('submit', function (e) {
+        const text = input.value.trim();
+        if (!text) { e.preventDefault(); return; }
+        input.value = text;
+        document.querySelectorAll('section').forEach(function (s) { s.remove(); });
+        document.getElementById('pendingText').textContent = text;
+        document.getElementById('pending').classList.remove('hidden');
+        sendButton.disabled = true;
+        input.readOnly = true;
+        scrollToBottom();
+    });
+
+    window.addEventListener('load', function () {
+        scrollToBottom();
+        input.focus();
     });
 </script>
 
