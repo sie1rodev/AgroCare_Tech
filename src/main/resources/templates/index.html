@@ -32,6 +32,11 @@
         /* Margem superior no celular, somando a área do relógio/notch do iPhone */
         .safe-top { padding-top: calc(env(safe-area-inset-top) + 2rem); }
         @media (min-width: 1024px) { .safe-top { padding-top: 2.5rem; } }
+        /* Carrossel de especialistas: 3 por vez no celular, 4 no desktop */
+        .no-scrollbar { scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .vet-slide { flex-basis: calc((100% - 1.5rem) / 3); }
+        @media (min-width: 1024px) { .vet-slide { flex-basis: calc((100% - 2.25rem) / 4); } }
     </style>
     <script>
         // Se uma foto não carregar (ex.: serviço de avatar fora do ar), mostra as iniciais do nome
@@ -90,17 +95,17 @@
             </a>
         </header>
 
-        <div class="lg:grid lg:grid-cols-[300px_1fr] lg:gap-6 lg:items-start">
+        <div class="lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-6 lg:items-start">
 
             <!-- Perfil (celular) -->
             <section class="lg:hidden mb-6">
                 <div class="relative card rounded-3xl h-24 flex items-center justify-between px-6">
                     <div class="text-center">
-                        <p class="font-bold text-lg">3.127</p>
+                        <p class="font-bold text-lg" th:text="${#numbers.formatInteger(totalAnimais, 1, 'POINT')}">0</p>
                         <p class="text-xs text-gray-300">Animais</p>
                     </div>
                     <div class="text-center">
-                        <p class="font-bold text-lg">81</p>
+                        <p class="font-bold text-lg" th:text="${#numbers.formatInteger(totalConsultas, 1, 'POINT')}">0</p>
                         <p class="text-xs text-gray-300">Consultas</p>
                     </div>
                     <img referrerpolicy="no-referrer" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full object-cover border-4 border-emerald-400/80 shadow-[0_0_25px_rgba(52,211,153,0.35)]"
@@ -130,11 +135,11 @@
                 </p>
                 <div class="grid grid-cols-2 mt-8 pt-6 border-t border-white/10">
                     <div class="border-r border-white/10">
-                        <p class="font-bold text-2xl">3.127</p>
+                        <p class="font-bold text-2xl" th:text="${#numbers.formatInteger(totalAnimais, 1, 'POINT')}">0</p>
                         <p class="text-xs text-gray-300">Animais</p>
                     </div>
                     <div>
-                        <p class="font-bold text-2xl">81</p>
+                        <p class="font-bold text-2xl" th:text="${#numbers.formatInteger(totalConsultas, 1, 'POINT')}">0</p>
                         <p class="text-xs text-gray-300">Consultas</p>
                     </div>
                 </div>
@@ -154,8 +159,8 @@
                                 </div>
                             </div>
                             <div class="flex-1 flex flex-col items-center justify-center">
-                                <p class="text-4xl lg:text-5xl font-semibold text-emerald-400">21</p>
-                                <p class="text-sm text-gray-300">Saúde</p>
+                                <p class="text-4xl lg:text-5xl font-semibold text-emerald-400" th:text="${consultasRecentes}">0</p>
+                                <p class="text-sm text-gray-300">Últimos 30 dias</p>
                             </div>
                         </div>
                         <!-- Consultas -->
@@ -165,7 +170,7 @@
                                 <i class="fas fa-circle-info text-emerald-400/70 text-sm"></i>
                             </div>
                             <div class="flex-1 flex flex-col items-center justify-center">
-                                <p class="text-4xl lg:text-5xl font-semibold text-emerald-400">81</p>
+                                <p class="text-4xl lg:text-5xl font-semibold text-emerald-400" th:text="${#numbers.formatInteger(totalConsultas, 1, 'POINT')}">0</p>
                                 <p class="text-sm text-gray-300">Realizadas</p>
                             </div>
                         </a>
@@ -191,40 +196,47 @@
                             <path d="M0 30 L12 26 L22 29 L32 18 L42 22 L52 12 L62 20 L72 10 L82 16 L92 8 L104 14 L120 6" fill="none" stroke="#a7f3d0" stroke-width="1.5"/>
                         </svg>
                         <div class="mt-2">
-                            <p class="text-3xl font-semibold text-emerald-400">3.127</p>
+                            <p class="text-3xl font-semibold text-emerald-400" th:text="${#numbers.formatInteger(totalAnimais, 1, 'POINT')}">0</p>
                             <p class="text-sm text-gray-300">Vidas</p>
                         </div>
                     </div>
                 </section>
 
-                <!-- Especialistas -->
-                <section class="card rounded-3xl p-4 lg:p-6">
+                <!-- Especialistas (carrossel) -->
+                <section class="card rounded-3xl p-4 lg:p-6" aria-roledescription="carrossel" aria-label="Especialistas">
                     <div class="flex items-center justify-between mb-4 lg:mb-6">
-                        <p class="text-sm text-gray-300">Especialistas</p>
-                        <div class="flex items-center gap-1">
-                            <span class="w-5 h-1 rounded-full bg-emerald-400"></span>
-                            <span class="w-3 h-1 rounded-full bg-white/25"></span>
-                            <span class="w-3 h-1 rounded-full bg-white/25"></span>
-                        </div>
+                        <a href="/veterinario" class="text-sm text-gray-300 hover:text-white transition">Especialistas</a>
+                        <div id="vetDots" class="flex items-center gap-1"></div>
                     </div>
-                    <a href="/veterinario" class="grid grid-cols-3 gap-3 text-center">
-                        <div>
-                            <img class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto rounded-full object-cover border-2 border-white/10 bg-white/5"
-                                 src="https://avatar.iran.liara.run/public/job/doctor/male" alt="Dr. João Silva" />
-                            <p class="text-xs lg:text-sm text-gray-300 mt-2 truncate">Dr. João Silva</p>
+
+                    <div class="relative">
+                        <button type="button" id="vetPrev" aria-label="Anteriores"
+                                class="vet-nav hidden sm:flex absolute -left-3 top-8 lg:top-10 z-10 w-9 h-9 rounded-full items-center justify-center bg-[#0e2215]/90 border border-white/10 text-gray-200 hover:text-white disabled:opacity-0 transition">
+                            <i class="fas fa-chevron-left text-sm"></i>
+                        </button>
+
+                        <div id="vetTrack" class="no-scrollbar flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth">
+                            <a th:each="vet : ${especialistas}" href="/veterinario"
+                               class="vet-slide snap-start shrink-0 min-w-0 text-center group">
+                                <img referrerpolicy="no-referrer" loading="lazy"
+                                     class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto rounded-full object-cover border-2 border-white/10 bg-white/5 group-hover:border-emerald-400/70 transition"
+                                     th:src="${vet.avatar}" th:alt="${vet.name}" alt="Especialista" />
+                                <p class="text-xs lg:text-sm text-gray-200 mt-2 truncate px-1" th:text="${vet.name}">Especialista</p>
+                                <p class="text-[10px] lg:text-xs text-emerald-300/80 truncate px-1" th:text="${vet.especializacaoVeterinario}">Especialidade</p>
+                            </a>
+                            <a href="/veterinario" class="vet-slide snap-start shrink-0 min-w-0 flex flex-col items-center text-center group">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center text-gray-300 group-hover:text-white group-hover:border-white/40 transition">
+                                    <i class="fas fa-arrow-right"></i>
+                                </div>
+                                <p class="text-xs lg:text-sm text-gray-300 mt-2">Ver todos</p>
+                            </a>
                         </div>
-                        <div>
-                            <img class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto rounded-full object-cover border-2 border-white/10 bg-white/5"
-                                 src="https://avatar.iran.liara.run/public/job/doctor/female" alt="Dra. Ana Costa" />
-                            <p class="text-xs lg:text-sm text-gray-300 mt-2 truncate">Dra. Ana Costa</p>
-                        </div>
-                        <div class="flex flex-col items-center">
-                            <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center text-gray-300 hover:text-white hover:border-white/40 transition">
-                                <i class="fas fa-arrow-right"></i>
-                            </div>
-                            <p class="text-xs lg:text-sm text-gray-300 mt-2">Ver todos</p>
-                        </div>
-                    </a>
+
+                        <button type="button" id="vetNext" aria-label="Próximos"
+                                class="vet-nav hidden sm:flex absolute -right-3 top-8 lg:top-10 z-10 w-9 h-9 rounded-full items-center justify-center bg-[#0e2215]/90 border border-white/10 text-gray-200 hover:text-white disabled:opacity-0 transition">
+                            <i class="fas fa-chevron-right text-sm"></i>
+                        </button>
+                    </div>
                 </section>
             </div>
         </div>
@@ -261,6 +273,58 @@
 </nav>
 
 <script>
+    // Carrossel de especialistas: arrastar, setas, indicadores e avanço automático
+    (function () {
+        const track = document.getElementById('vetTrack');
+        if (!track) return;
+        const dots = document.getElementById('vetDots');
+        const prev = document.getElementById('vetPrev');
+        const next = document.getElementById('vetNext');
+        const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let timer = null, resumeAt = 0;
+
+        const pageWidth = function () { return track.clientWidth + 12; }; // largura visível + gap
+        const pages = function () { return Math.max(1, Math.ceil((track.scrollWidth + 12) / pageWidth() - 0.01)); };
+        const current = function () { return Math.round(track.scrollLeft / pageWidth()); };
+        const goTo = function (i) { track.scrollTo({ left: i * pageWidth(), behavior: calm ? 'auto' : 'smooth' }); };
+
+        function render() {
+            const total = pages(), at = Math.min(current(), total - 1);
+            dots.innerHTML = '';
+            for (let i = 0; i < total; i++) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.setAttribute('aria-label', 'Página ' + (i + 1));
+                b.className = 'h-1 rounded-full transition-all duration-300 ' + (i === at ? 'w-5 bg-emerald-400' : 'w-3 bg-white/25 hover:bg-white/40');
+                b.addEventListener('click', function () { pause(); goTo(i); });
+                dots.appendChild(b);
+            }
+            prev.disabled = at <= 0;
+            next.disabled = at >= total - 1;
+            dots.classList.toggle('invisible', total <= 1);
+        }
+
+        function pause() { resumeAt = Date.now() + 8000; }
+        function tick() {
+            if (Date.now() < resumeAt || document.hidden) return;
+            const total = pages();
+            if (total <= 1) return;
+            goTo(current() >= total - 1 ? 0 : current() + 1);
+        }
+
+        prev.addEventListener('click', function () { pause(); goTo(current() - 1); });
+        next.addEventListener('click', function () { pause(); goTo(current() + 1); });
+        ['pointerdown', 'touchstart', 'wheel', 'focusin'].forEach(function (ev) { track.addEventListener(ev, pause, { passive: true }); });
+        track.addEventListener('mouseenter', function () { resumeAt = Infinity; });
+        track.addEventListener('mouseleave', function () { resumeAt = Date.now() + 2000; });
+
+        let raf = 0;
+        track.addEventListener('scroll', function () { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); }, { passive: true });
+        window.addEventListener('resize', render);
+        render();
+        if (!calm) timer = setInterval(tick, 4000);
+    })();
+
     // Localização real: GPS do navegador -> cidade/estado (OpenStreetMap), guardada no navegador
     const LOCATION_KEY = 'agrocare.location';
 

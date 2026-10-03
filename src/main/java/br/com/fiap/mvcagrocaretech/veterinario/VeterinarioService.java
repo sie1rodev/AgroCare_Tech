@@ -20,4 +20,8 @@ public class VeterinarioService {
     public List<Veterinario> findAll() {
         return veterinarioRepository.findAll();
     }
+
+    public List<Veterinario> findDestaques() {
+        return veterinarioRepository.findAllByOrderByNameAsc();
+    }
 }

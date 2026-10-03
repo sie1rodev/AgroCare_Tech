@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,6 +21,14 @@ public class ServicoService {
 
     public List<Servico> findAll() {
         return repository.findAll();
+    }
+
+    public long count() {
+        return repository.count();
+    }
+
+    public long countUltimosDias(int dias) {
+        return repository.countByDataServicoGreaterThanEqual(LocalDate.now().minusDays(dias));
     }
 
 }

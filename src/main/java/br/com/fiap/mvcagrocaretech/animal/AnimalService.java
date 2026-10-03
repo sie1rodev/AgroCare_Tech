@@ -19,4 +19,8 @@ public class AnimalService {
     public List<Animal> findAll(){
         return animalRepository.findAll();
     }
+
+    public long count(){
+        return animalRepository.count();
+    }
 }
