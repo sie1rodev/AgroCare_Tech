@@ -40,7 +40,9 @@ public class User extends DefaultOAuth2User {
                 "email"
         );
         this.name = principal.getAttribute("name");
-        this.avatar = principal.getAttribute("avatar_url");
+        // GitHub envia "avatar_url"; Google envia "picture"
+        String githubAvatar = principal.getAttribute("avatar_url");
+        this.avatar = githubAvatar != null ? githubAvatar : principal.getAttribute("picture");
         this.email = principal.getAttribute("email");
     }
 

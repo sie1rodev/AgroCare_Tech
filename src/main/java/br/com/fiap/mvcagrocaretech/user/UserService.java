@@ -29,6 +29,16 @@ public class UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         var principal = super.loadUser(userRequest);
         var email = principal.getAttribute("email").toString();
-        return userRepository.findByEmail(email).orElseGet(() -> new User(principal));
+        var current = new User(principal);
+
+        // Mesmo e-mail em provedores diferentes (GitHub/Google) = mesma conta.
+        // Atualiza nome e foto com os dados do provedor usado neste login.
+        return userRepository.findByEmail(email)
+                .map(saved -> {
+                    if (current.getName() != null) saved.setName(current.getName());
+                    if (current.getAvatar() != null) saved.setAvatar(current.getAvatar());
+                    return (OAuth2User) userRepository.save(saved);
+                })
+                .orElse(current);
     }
 }
